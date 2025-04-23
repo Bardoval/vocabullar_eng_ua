@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер словникового запасу | Англійська-Українська</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166088;
+            --light: #f5f7fa;
+            --dark: #333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        h1, h2, h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: var(--light);
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        input, button, select {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            width: 100%;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: var(--secondary);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background: #bd2130;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .word-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .word-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        
+        .word-english {
+            font-weight: bold;
+        }
+        
+        .word-ukrainian {
+            color: #666;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .word-card {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .word-card-english {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .word-card-ukrainian {
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 10px;
+            flex: 1;
+            border-right: 1px solid #eee;
+        }
+        
+        .stat-card:last-child {
+            border-right: none;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .progress-container {
+            height: 5px;
+            background-color: #eee;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 5px;
+            width: 0%;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .form-row input {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: #666;
+        }
+        
+        .flash-card {
+            perspective: 1000px;
+            margin: 20px 0;
+            height: 200px;
+        }
+        
+        .flash-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        
+        .flash-card.flipped .flash-card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flash-card-front, .flash-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            font-size: 24px;
+        }
+        
+        .flash-card-front {
+            background-color: white;
+            color: var(--dark);
+        }
+        
+        .flash-card-back {
+            background-color: var(--primary);
+            color: white;
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Тренажер словникового запасу</h1>
+        
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" data-tab="practice">Практика</button>
+                <button class="tab" data-tab="dictionary">Словник</button>
+                <button class="tab" data-tab="add">Додати слово</button>
+                <button class="tab" data-tab="stats">Статистика</button>
+            </div>
+            
+            <div id="practice" class="tab-content active">
+                <div id="practice-empty" class="empty-state">
+                    <h3>Немає слів для повторення</h3>
+                    <p>Додайте нові слова до словника або зачекайте, поки існуючі слова будуть готові до повторення.</p>
+                </div>
+                
+                <div id="practice-content" style="display: none;">
+                    <div class="progress-container">
+                        <div class="progress-bar" id="practice-progress"></div>
+                    </div>
+                    
+                    <div class="flash-card" id="flashcard">
+                        <div class="flash-card-inner">
+                            <div class="flash-card-front">
+                                <span id="word-english"></span>
+                            </div>
+                            <div class="flash-card-back">
+                                <span id="word-ukrainian"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <p>Клацніть на картку, щоб побачити переклад</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn-danger" id="btn-forgot">Забув</button>
+                        <button class="btn-success" id="btn-remember">Пам'ятаю</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="dictionary" class="tab-content">
+                <div id="dictionary-empty" class="empty-state">
+                    <h3>Ваш словник порожній</h3>
+                    <p>Додайте нові слова, щоб почати навчання.</p>
+                </div>
+                
+                <div id="dictionary-content" style="display: none;">
+                    <input type="text" id="search-word" placeholder="Пошук слова...">
+                    
+                    <table id="word-table">
+                        <thead>
+                            <tr>
+                                <th>Англійська</th>
+                                <th>Українська</th>
+                                <th>Рівень</th>
+                                <th>Наступне повторення</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody id="word-list"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="add" class="tab-content">
+                <h2>Додати нове слово</h2>
+                <form id="add-word-form">
+                    <div class="form-row">
+                        <input type="text" id="new-english" placeholder="Слово англійською" required>
+                        <input type="text" id="new-ukrainian" placeholder="Переклад українською" required>
+                    </div>
+                    <button type="submit">Додати</button>
+                </form>
+                
+                <h3 style="margin-top: 20px;">Пакетне додавання</h3>
+                <p>Введіть слова у форматі "англійське слово = український переклад", кожна пара з нового рядка</p>
+                <textarea id="batch-words" rows="5" style="width: 100%; padding: 10px;"></textarea>
+                <button id="add-batch">Додати пакетно</button>
+            </div>
+            
+            <div id="stats" class="tab-content">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-words">0</div>
+                        <div class="stat-label">Всього слів</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="mastered-words">0</div>
+                        <div class="stat-label">Вивчено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="learning-words">0</div>
+                        <div class="stat-label">В процесі</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="due-today">0</div>
+                        <div class="stat-label">На сьогодні</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 20px;">Експорт/Імпорт</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button id="export-btn">Експорт словника</button>
+                    <button id="import-btn">Імпорт словника</button>
+                </div>
+                <input type="file" id="import-file" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Модель даних
+        class Word {
+            constructor(english, ukrainian, level = 0, nextReview = new Date(), history = []) {
+                this.english = english;
+                this.ukrainian = ukrainian;
+                this.level = level; // 0-10, де 10 - повністю вивчено
+                this.nextReview = new Date(nextReview);
+                this.history = history; // Історія відповідей [{ date, success }]
+            }
+        }
+
+        class VocabularyApp {
+            constructor() {
+                this.words = [];
+                this.currentIndex = 0;
+                this.dueTodayWords = [];
+                
+                this.loadFromLocalStorage();
+                this.setupEventListeners();
+                this.updateStats();
+                this.showTab('practice');
+                this.updateDueWords();
+            }
+            
+            loadFromLocalStorage() {
+                const savedWords = localStorage.getItem('vocabulary-words');
+                if (savedWords) {
+                    this.words = JSON.parse(savedWords).map(word => {
+                        return new Word(
+                            word.english,
+                            word.ukrainian || word.russian, // підтримка старих даних
+                            word.level,
+                            word.nextReview,
+                            word.history || []
+                        );
+                    });
+                    // Перетворюємо рядки дат назад в об'єкти Date
+                    this.words.forEach(word => {
+                        word.nextReview = new Date(word.nextReview);
+                        if (word.history) {
+                            word.history.forEach(h => {
+                                h.date = new Date(h.date);
+                            });
+                        }
+                    });
+                }
+            }
+            
+            saveToLocalStorage() {
+                localStorage.setItem('vocabulary-words', JSON.stringify(this.words));
+            }
+            
+            addWord(english, ukrainian) {
+                // Перевірка на дублікати
+                const existingWord = this.words.find(w => w.english.toLowerCase() === english.toLowerCase());
+                if (existingWord) {
+                    alert('Це слово вже є в словнику!');
+                    return false;
+                }
+                
+                const newWord = new Word(english, ukrainian);
+                this.words.push(newWord);
+                this.saveToLocalStorage();
+                this.updateWordList();
+                this.updateStats();
+                this.updateDueWords();
+                return true;
+            }
+            
+            updateWord(index, english, ukrainian) {
+                if (index >= 0 && index < this.words.length) {
+                    this.words[index].english = english;
+                    this.words[index].ukrainian = ukrainian;
+                    this.saveToLocalStorage();
+                    this.updateWordList();
+                }
+            }
+            
+            deleteWord(index) {
+                if (index >= 0 && index < this.words.length) {
+                    this.words.splice(index, 1);
+                    this.saveToLocalStorage();
+                    this.updateWordList();
+                    this.updateStats();
+                    this.updateDueWords();
+                }
+            }
+            
+            updateDueWords() {
+                const now = new Date();
+                this.dueTodayWords = this.words
+                    .filter(word => word.nextReview <= now)
+                    .sort((a, b) => a.nextReview - b.nextReview);
+                
+                // Оновлюємо лічильник на вкладці практики
+                document.getElementById('due-today').textContent = this.dueTodayWords.length;
+                
+                // Показуємо/приховуємо вміст залежно від наявності слів для повторення
+                const emptyState = document.getElementById('practice-empty');
+                const content = document.getElementById('practice-content');
+                
+                if (this.dueTodayWords.length > 0) {
+                    emptyState.style.display = 'none';
+                    content.style.display = 'block';
+                    this.currentIndex = 0;
+                    this.showCurrentWord();
+                } else {
+                    emptyState.style.display = 'block';
+                    content.style.display = 'none';
+                }
+            }
+            
+            showCurrentWord() {
+                if (this.dueTodayWords.length === 0) return;
+                
+                const word = this.dueTodayWords[this.currentIndex];
+                document.getElementById('word-english').textContent = word.english;
+                document.getElementById('word-ukrainian').textContent = word.ukrainian;
+                
+                // Скидаємо стан картки
+                document.getElementById('flashcard').classList.remove('flipped');
+                
+                // Оновлюємо індикатор прогресу
+                const progress = ((this.currentIndex + 1) / this.dueTodayWords.length) * 100;
+                document.getElementById('practice-progress').style.width = progress + '%';
+            }
+            
+            reviewWord(remembered) {
+                if (this.dueTodayWords.length === 0) return;
+                
+                const word = this.dueTodayWords[this.currentIndex];
+                const wordIndex = this.words.findIndex(w => w.english === word.english);
+                
+                // Зберігаємо історію відповіді
+                if (!word.history) word.history = [];
+                word.history.push({
+                    date: new Date(),
+                    success: remembered
+                });
+                
+                // Оновлюємо рівень знання та дату наступного повторення
+                if (remembered) {
+                    word.level = Math.min(10, word.level + 1);
+                } else {
+                    word.level = Math.max(0, word.level - 1);
+                }
+                
+                // Розраховуємо інтервал до наступного повторення на основі рівня знання
+                let nextInterval = 0;
+                switch (word.level) {
+                    case 0: nextInterval = 0; break;  // негайно
+                    case 1: nextInterval = 1; break;  // 1 година
+                    case 2: nextInterval = 3; break;  // 3 години
+                    case 3: nextInterval = 8; break;  // 8 годин
+                    case 4: nextInterval = 24; break; // 1 день
+                    case 5: nextInterval = 48; break; // 2 дні
+                    case 6: nextInterval = 72; break; // 3 дні
+                    case 7: nextInterval = 7 * 24; break; // 1 тиждень
+                    case 8: nextInterval = 14 * 24; break; // 2 тижні
+                    case 9: nextInterval = 30 * 24; break; // 1 місяць
+                    case 10: nextInterval = 90 * 24; break; // 3 місяці
+                }
+                
+                // Встановлюємо дату наступного повторення
+                word.nextReview = new Date(Date.now() + nextInterval * 60 * 60 * 1000);
+                
+                // Оновлюємо слово в масиві
+                this.words[wordIndex] = word;
+                this.saveToLocalStorage();
+                
+                // Переходимо до наступного слова або завершуємо повторення
+                this.currentIndex++;
+                if (this.currentIndex >= this.dueTodayWords.length) {
+                    this.updateDueWords(); // Оновлюємо список слів для повторення
+                    alert('Вітаємо! Ви завершили всі повторення на сьогодні.');
+                    this.currentIndex = 0;
+                } else {
+                    this.showCurrentWord();
+                }
+                
+                this.updateStats();
+                this.updateWordList();
+            }
+            
+            updateWordList() {
+                const wordListEl = document.getElementById('word-list');
+                const dictionaryContent = document.getElementById('dictionary-content');
+                const dictionaryEmpty = document.getElementById('dictionary-empty');
+                
+                if (this.words.length === 0) {
+                    dictionaryContent.style.display = 'none';
+                    dictionaryEmpty.style.display = 'block';
+                    return;
+                } else {
+                    dictionaryContent.style.display = 'block';
+                    dictionaryEmpty.style.display = 'none';
+                }
+                
+                // Очищаємо список
+                wordListEl.innerHTML = '';
+                
+                // Заповнюємо список слів
+                const searchTerm = document.getElementById('search-word').value.toLowerCase();
+                
+                const filteredWords = searchTerm 
+                    ? this.words.filter(word => 
+                        word.english.toLowerCase().includes(searchTerm) || 
+                        word.ukrainian.toLowerCase().includes(searchTerm))
+                    : this.words;
+                
+                filteredWords.forEach((word, index) => {
+                    const tr = document.createElement('tr');
+                    
+                    const getLevelName = (level) => {
+                        if (level <= 2) return 'Початківець';
+                        if (level <= 5) return 'Середній';
+                        if (level <= 8) return 'Просунутий';
+                        return 'Майстер';
+                    };
+                    
+                    const formatDate = (date) => {
+                        const now = new Date();
+                        const diff = date - now;
+                        
+                        // Якщо дата в минулому
+                        if (diff < 0) return 'Зараз';
+                        
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        
+                        if (days > 0) {
+                            return `Через ${days} дн.`;
+                        } else {
+                            return `Через ${hours} год.`;
+                        }
+                    };
+                    
+                    tr.innerHTML = `
+                        <td>${word.english}</td>
+                        <td>${word.ukrainian}</td>
+                        <td>${getLevelName(word.level)} (${word.level}/10)</td>
+                        <td>${formatDate(word.nextReview)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="edit-word" data-index="${index}">✏️</button>
+                                <button class="delete-word" data-index="${index}">🗑️</button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    wordListEl.appendChild(tr);
+                });
+                
+                // Додаємо обробники подій для кнопок редагування та видалення
+                document.querySelectorAll('.edit-word').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.getAttribute('data-index'));
+                        const word = this.words[index];
+                        
+                        const englishPrompt = prompt('Редагувати англійське слово:', word.english);
+                        if (englishPrompt === null) return;
+                        
+                        const ukrainianPrompt = prompt('Редагувати переклад:', word.ukrainian);
+                        if (ukrainianPrompt === null) return;
+                        
+                        this.updateWord(index, englishPrompt, ukrainianPrompt);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-word').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.getAttribute('data-index'));
+                        const word = this.words[index];
+                        
+                        if (confirm(`Ви впевнені, що хочете видалити слово "${word.english}"?`)) {
+                            this.deleteWord(index);
+                        }
+                    });
+                });
+            }
+            
+            updateStats() {
+                const totalWords = this.words.length;
+                const masteredWords = this.words.filter(word => word.level >= 8).length;
+                const learningWords = totalWords - masteredWords;
+                
+                document.getElementById('total-words').textContent = totalWords;
+                document.getElementById('mastered-words').textContent = masteredWords;
+                document.getElementById('learning-words').textContent = learningWords;
+            }
+            
+            showTab(tabName) {
+                // Активуємо потрібну вкладку
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+                
+                // Показуємо вміст потрібної вкладки
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabName).classList.add('active');
+                
+                // Виконуємо специфічні дії для кожної вкладки
+                if (tabName === 'dictionary') {
+                    this.updateWordList();
+                } else if (tabName === 'practice') {
+                    this.updateDueWords();
+                } else if (tabName === 'stats') {
+                    this.updateStats();
+                }
+            }
+            
+            exportDictionary() {
+                const dataStr = JSON.stringify(this.words);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = 'vocabulary-export.json';
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+            }
+            
+            importDictionary(fileContent) {
+                try {
+                    const importedWords = JSON.parse(fileContent);
+                    
+                    if (!Array.isArray(importedWords)) {
+                        throw new Error('Невірний формат даних');
+                    }
+                    
+                    // Перевіряємо структуру кожного слова
+                    importedWords.forEach(word => {
+                        if (!word.english || (!word.ukrainian && !word.russian)) {
+                            throw new Error('Невірна структура даних');
+                        }
+                    });
+                    
+                    // Перетворюємо імпортовані дані
+                    const processedWords = importedWords.map(word => {
+                        return new Word(
+                            word.english,
+                            word.ukrainian || word.russian || "",
+                            word.level || 0,
+                            word.nextReview || new Date(),
+                            word.history || []
+                        );
+                    });
+                    
+                    // Запитуємо користувача, чи хоче він замінити або об'єднати словник
+                    const choice = confirm('Замінити існуючий словник? Натисніть OK для заміни або Скасувати для об\'єднання.');
+                    
+                    if (choice) {
+                        // Заміна словника
+                        this.words = processedWords;
+                    } else {
+                        // Об'єднання словників
+                        // Додаємо лише нові слова
+                        processedWords.forEach(newWord => {
+                            const existingIndex = this.words.findIndex(w => 
+                                w.english.toLowerCase() === newWord.english.toLowerCase());
+                                
+                            if (existingIndex === -1) {
+                                this.words.push(newWord);
+                            }
+                        });
+                    }
+                    
+                    // Перетворюємо рядки дат назад в об'єкти Date
+                    this.words.forEach(word => {
+                        word.nextReview = new Date(word.nextReview);
+                        if (word.history) {
+                            word.history.forEach(h => {
+                                h.date = new Date(h.date);
+                            });
+                        }
+                    });
+                    
+                    this.saveToLocalStorage();
+                    this.updateWordList();
+                    this.updateStats();
+                    this.updateDueWords();
+                    
+                    alert('Імпорт успішно завершено!');
+                } catch (error) {
+                    alert('Помилка при імпорті: ' + error.message);
+                }
+            }
+            
+            setupEventListeners() {
+                // Обробники подій для вкладок
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const tabName = e.target.getAttribute('data-tab');
+                        this.showTab(tabName);
+                    });
+                });
+                
+                // Обробник форми додавання слова
+                document.getElementById('add-word-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    
+                    const englishInput = document.getElementById('new-english');
+                    const ukrainianInput = document.getElementById('new-ukrainian');
+                    
+                    const english = englishInput.value.trim();
+                    const ukrainian = ukrainianInput.value.trim();
+                    
+                    if (english && ukrainian) {
+                        if (this.addWord(english, ukrainian)) {
+                            // Очищаємо поля вводу тільки якщо додавання пройшло успішно
+                            englishInput.value = '';
+                            ukrainianInput.value = '';
+                        }
+                    }
+                });
+                
+                // Обробник для пакетного додавання слів
+                document.getElementById('add-batch').addEventListener('click', () => {
+                    const batchText = document.getElementById('batch-words').value.trim();
+                    
+                    if (!batchText
